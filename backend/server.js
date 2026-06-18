@@ -5,7 +5,11 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
+import { error } from "console";
+import connectDB from "./config/db.js";
+import errorHandler from "./middleware/errorHandler.js";
 
+import authRoutes from "./routes/authRoutes.js";
 //ES6 module syntax doesn't have __dirname, so we need to create it
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,6 +35,11 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 //routes
+app.use(errorHandler);
+app.use("/api/auth", authRoutes);
+// app.use("/api/users", userRoutes);
+// app.use("/api/products", productRoutes);
+// app.use("/api/orders", orderRoutes);
 
 //404 handler
 app.use((req, res) => {
@@ -47,4 +56,9 @@ app.listen(PORT, () => {
   console.log(
     `Server running in  ${process.env.NODE_ENV} mode on port ${PORT}`,
   );
+});
+
+process.on("unhandledRejection", (err) => {
+  console.error(`Unhandled Rejection: ${err.message}`);
+  process.exit(1);
 });
