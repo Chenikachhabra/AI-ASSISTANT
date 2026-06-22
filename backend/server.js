@@ -5,21 +5,18 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
-import { error } from "console";
 import connectDB from "./config/db.js";
 import errorHandler from "./middleware/errorHandler.js";
-
 import authRoutes from "./routes/authRoutes.js";
-//ES6 module syntax doesn't have __dirname, so we need to create it
+import documentRoutes from "./routes/documentRoutes.js";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-//initialize express app
 const app = express();
 
-//connect to database
 connectDB();
-//middleware
+
 app.use(
   cors({
     origin: "*",
@@ -30,32 +27,25 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-//static folder for uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-//routes
-app.use(errorHandler);
+// ✅ Routes first
 app.use("/api/auth", authRoutes);
-// app.use("/api/users", userRoutes);
-// app.use("/api/products", productRoutes);
-// app.use("/api/orders", orderRoutes);
+app.use("/api/documents", documentRoutes);
 
-//404 handler
+// ✅ 404 handler
 app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    error: "Route not found",
-    statusCode: 404,
-  });
+  res
+    .status(404)
+    .json({ success: false, error: "Route not found", statusCode: 404 });
 });
 
-//Start the server
+// ✅ Error handler LAST
+app.use(errorHandler);
+
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
-  console.log(
-    `Server running in  ${process.env.NODE_ENV} mode on port ${PORT}`,
-  );
+  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
 });
 
 process.on("unhandledRejection", (err) => {
